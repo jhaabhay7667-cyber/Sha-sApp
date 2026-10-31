@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101828">
+    <meta name="description" content="Sha'sapp — Connect, chat, and stay close.">
+
+    <title>Sha'sapp — Messaging Made Personal</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/app.js" defer></script>
+</head>
+
+<body>
+    <!-- Authentication -->
+    <section id="authScreen" class="auth-screen">
+        <div class="auth-decoration decoration-one"></div>
+        <div class="auth-decoration decoration-two"></div>
+
+        <div class="auth-card">
+            <a href="#" class="brand auth-brand">
+                <span class="brand-icon">S</span>
+                <span>Sha's<span class="brand-accent">app</span></span>
+            </a>
+
+            <div class="auth-heading">
+                <p class="eyebrow">YOUR WORLD, CONNECTED</p>
+                <h1 id="authTitle">Welcome back.</h1>
+                <p id="authDescription">
+                    Sign in to continue your conversations.
+                </p>
+            </div>
+
+            <form id="authForm">
+                <div id="nameField" class="form-field hidden">
+                    <label for="fullName">Full name</label>
+                    <input
+                        id="fullName"
+                        type="text"
+                        placeholder="Enter your name"
+                        autocomplete="name"
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email address</label>
+                    <input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <div class="label-row">
+                        <label for="password">Password</label>
+                        <button
+                            id="togglePassword"
+                            class="text-button"
+                            type="button"
+                        >
+                            Show
+                        </button>
+                    </div>
+
+                    <input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <p id="authError" class="error-message" role="alert"></p>
+
+                <button id="authSubmit" class="primary-button" type="submit">
+                    Sign in <span>→</span>
+                </button>
+            </form>
+
+            <p class="auth-switch">
+                <span id="authSwitchText">New to Sha'sapp?</span>
+                <button id="authSwitch" class="text-button" type="button">
+                    Create account
+                </button>
+            </p>
+
+            <div class="auth-footer">
+                PRIVATE CONVERSATIONS. MEANINGFUL CONNECTIONS.
+            </div>
+        </div>
+    </section>
+
+    <!-- Main application -->
+    <main id="appScreen" class="app-screen hidden">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <header class="sidebar-header">
+                <a href="#" class="brand">
+                    <span class="brand-icon">S</span>
+                    <span>Sha's<span class="brand-accent">app</span></span>
+                </a>
+
+                <button
+                    id="themeToggle"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Toggle theme"
+                    title="Toggle light/dark theme"
+                >☾</button>
+            </header>
+
+            <div class="profile-mini">
+                <div id="myAvatar" class="avatar avatar-large">S</div>
+
+                <div class="profile-details">
+                    <strong id="myName">Your Profile</strong>
+                    <span id="myEmail">Welcome to Sha'sapp</span>
+                </div>
+
+                <button
+                    id="logoutButton"
+                    class="icon-button"
+                    type="button"
+                    title="Sign out"
+                    aria-label="Sign out"
+                >↗</button>
+            </div>
+
+            <div class="sidebar-title-row">
+                <h2>Messages</h2>
+                <span id="chatCount" class="count-badge">0</span>
+            </div>
+
+            <div class="search-box">
+                <span aria-hidden="true">⌕</span>
+                <input
+                    id="searchInput"
+                    type="search"
+                    placeholder="Search conversations"
+                    aria-label="Search conversations"
+                >
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all" type="button">
+                    All
+                </button>
+                <button class="filter-tab" data-filter="unread" type="button">
+                    Unread
+                </button>
+                <button class="filter-tab" data-filter="groups" type="button">
+                    Groups
+                </button>
+            </div>
+
+            <div id="conversationList" class="conversation-list"></div>
+
+            <div class="sidebar-bottom">
+                <div class="connection-indicator">
+                    <span class="status-dot"></span>
+                    <span id="connectionText">Frontend preview</span>
+                </div>
+                <p>Sha'sapp · Built for connection</p>
+            </div>
+        </aside>
+
+        <!-- Chat area -->
+        <section class="chat-area">
+
+            <div id="emptyState" class="empty-state">
+                <div class="empty-illustration">
+                    <div class="illustration-bubble bubble-one">Hi!</div>
+                    <div class="illustration-bubble bubble-two">Hello 👋</div>
+                    <div class="illustration-circle">S</div>
+                </div>
+
+                <p class="eyebrow">YOUR PEOPLE, YOUR SPACE</p>
+                <h1>Every conversation<br>starts somewhere.</h1>
+                <p>
+                    Select a conversation to get started.
+                    Your next meaningful connection is one message away.
+                </p>
+
+                <button id="previewButton" class="secondary-button" type="button">
+                    Explore preview conversations
+                </button>
+            </div>
+
+            <section id="chatPanel" class="chat-panel hidden">
+
+                <header class="chat-header">
+                    <button
+                        id="backButton"
+                        class="icon-button mobile-back"
+                        type="button"
+                        aria-label="Back to conversations"
+                    >←</button>
+
+                    <div id="chatAvatar" class="avatar">A</div>
+
+                    <div class="chat-contact-details">
+                        <h2 id="chatName">Contact</h2>
+                        <p id="chatStatus">Preview conversation</p>
+                    </div>
+
+                    <div class="chat-header-actions">
+                        <button
+                            id="searchMessagesButton"
+                            class="icon-button"
+                            type="button"
+                            aria-label="Find messages"
+                            title="Find messages"
+                        >⌕</button>
+
+                        <button
+                            id="chatInfoButton"
+                            class="icon-button"
+                            type="button"
+                            aria-label="Conversation information"
+                            title="Conversation information"
+                        >ⓘ</button>
+                    </div>
+                </header>
+
+                <div id="messageSearch" class="message-search hidden">
+                    <input
+                        id="messageSearchInput"
+                        type="search"
+                        placeholder="Find a message in this conversation..."
+                        aria-label="Find a message"
+                    >
+                    <button id="closeMessageSearch" class="text-button" type="button">
+                        Close
+                    </button>
+                </div>
+
+                <div id="messageList" class="message-list">
+                    <div class="date-divider">
+                        <span>Today</span>
+                    </div>
+                </div>
+
+                <div id="typingIndicator" class="typing-indicator hidden">
+                    Typing...
+                </div>
+
+                <form id="messageForm" class="message-composer">
+                    <button
+                        id="attachButton"
+                        class="icon-button composer-action"
+                        type="button"
+                        aria-label="Attach a file"
+                        title="File attachments will be enabled later"
+                    >＋</button>
+
+                    <input
+                        id="messageInput"
+                        type="text"
+                        placeholder="Write a message..."
+                        maxlength="4000"
+                        autocomplete="off"
+                        aria-label="Write a message"
+                    >
+
+                    <button
+                        id="emojiButton"
+                        class="icon-button composer-action"
+                        type="button"
+                        aria-label="Insert an emoji"
+                    >☺</button>
+
+                    <button
+                        id="sendButton"
+                        class="send-button"
+                        type="submit"
+                        aria-label="Send message"
+                    >➤</button>
+                </form>
+
+                <p class="preview-notice">
+                    Preview mode · Messages are not sent to other users yet.
+                </p>
+            </section>
+
+        </section>
+
+        <!-- Conversation details -->
+        <aside id="infoPanel" class="info-panel hidden">
+            <header class="info-header">
+                <h2>Conversation details</h2>
+                <button id="closeInfoButton" class="icon-button" type="button">
+                    ×
+                </button>
+            </header>
+
+            <div class="info-profile">
+                <div id="infoAvatar" class="avatar avatar-xl">A</div>
+                <h3 id="infoName">Contact</h3>
+                <p id="infoStatus">Preview conversation</p>
+            </div>
+
+            <div class="info-section">
+                <span>ABOUT</span>
+                <p id="infoAbout">A Sha'sapp contact.</p>
+            </div>
+
+            <div class="info-section">
+                <span>CONVERSATION</span>
+                <p id="infoMessageCount">0 preview messages</p>
+            </div>
+
+            <div class="info-section">
+                <span>PRIVACY</span>
+                <p>Account privacy controls will be connected to the backend in a later stage.</p>
+            </div>
+        </aside>
+    </main>
+</body>
+</html>

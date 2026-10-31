@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+.gradle/
+*.apk
+*.aab
+
+# Android generated files
+frontend/android/.gradle/
+frontend/android/**/build/
+
+# Logs
+*.log
+
+# Database backups
+*.backup
+*.dump
+*.sql
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+# User uploaded media
+backend/uploads/
