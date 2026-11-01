@@ -1499,3 +1499,77 @@ body.light-theme .illustration-circle {
     opacity: 0.6;
     cursor: wait;
 }
+/* Friend Request Popup */
+.friend-request-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(8px);
+}
+
+.friend-request-modal.hidden {
+    display: none !important;
+}
+
+.friend-request-card {
+    width: 100%;
+    max-width: 380px;
+    padding: 28px 24px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 20px;
+    background: #171827;
+    color: #fff;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+}
+
+.friend-request-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.friend-request-card h2 {
+    margin: 0 0 10px;
+    font-size: 22px;
+}
+
+.friend-request-card p {
+    color: #b8b9c9;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.friend-request-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.friend-request-actions button {
+    flex: 1;
+    min-height: 44px;
+    border: 0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#acceptFriendRequestButton {
+    background: #16a36a;
+    color: #fff;
+}
+
+#declineFriendRequestButton {
+    background: #343548;
+    color: #fff;
+}
+
+.friend-request-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

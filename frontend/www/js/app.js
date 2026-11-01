@@ -2156,3 +2156,152 @@ showAuthenticationScreen();
     selectButton.addEventListener("click", selectPhoneContact);
 })();
 
+/* ==================================================
+   SHA'SAPP - FRIEND REQUEST POPUP
+================================================== */
+
+(() => {
+    const modal = document.querySelector("#friendRequestModal");
+    const message = document.querySelector("#friendRequestMessage");
+    const acceptButton = document.querySelector("#acceptFriendRequestButton");
+    const declineButton = document.querySelector("#declineFriendRequestButton");
+
+    if (!modal || !message || !acceptButton || !declineButton) {
+        console.error("Friend request popup HTML is missing.");
+        return;
+    }
+
+    let pollingTimer = null;
+    let requestQueue = [];
+    let activeRequest = null;
+    let isProcessing = false;
+    const seenRequestIds = new Set();
+
+    function showNextRequest() {
+        if (activeRequest || requestQueue.length === 0) return;
+
+        activeRequest = requestQueue.shift();
+
+        const senderName =
+            activeRequest.sender?.full_name ||
+            activeRequest.sender?.email ||
+            "Someone";
+
+        message.textContent =
+            `${senderName} wants to connect with you on Sha'sapp.`;
+
+        acceptButton.disabled = false;
+        declineButton.disabled = false;
+        acceptButton.textContent = "Accept";
+        declineButton.textContent = "Decline";
+
+        modal.classList.remove("hidden");
+    }
+
+    async function checkIncomingRequests() {
+        if (!currentUser || !sessionStorage.getItem(TOKEN_KEY)) return;
+
+        try {
+            const requests = await apiRequest(
+                "/contacts/requests/incoming"
+            );
+
+            if (!Array.isArray(requests)) return;
+
+            requests.forEach((request) => {
+                const requestId = Number(request.id);
+
+                if (
+                    request.status === "pending" &&
+                    !seenRequestIds.has(requestId)
+                ) {
+                    seenRequestIds.add(requestId);
+                    requestQueue.push(request);
+                }
+            });
+
+            showNextRequest();
+        } catch (error) {
+            console.error("Friend request check failed:", error);
+        }
+    }
+
+    async function respondToRequest(action) {
+        if (!activeRequest || isProcessing) return;
+
+        isProcessing = true;
+        acceptButton.disabled = true;
+        declineButton.disabled = true;
+
+        const selectedButton =
+            action === "accept" ? acceptButton : declineButton;
+
+        selectedButton.textContent =
+            action === "accept" ? "Accepting..." : "Declining...";
+
+        try {
+            await apiRequest(
+                `/contacts/requests/${encodeURIComponent(activeRequest.id)}/${action}`,
+                { method: "POST" }
+            );
+
+            modal.classList.add("hidden");
+            activeRequest = null;
+
+            await checkIncomingRequests();
+        } catch (error) {
+            message.textContent = error.message ||
+                "Something went wrong. Please try again.";
+
+            acceptButton.disabled = false;
+            declineButton.disabled = false;
+            acceptButton.textContent = "Accept";
+            declineButton.textContent = "Decline";
+        } finally {
+            isProcessing = false;
+        }
+    }
+
+    function startFriendRequestPolling() {
+        stopFriendRequestPolling();
+
+        requestQueue = [];
+        activeRequest = null;
+        seenRequestIds.clear();
+
+        checkIncomingRequests();
+
+        pollingTimer = setInterval(
+            checkIncomingRequests,
+            10000
+        );
+    }
+
+    function stopFriendRequestPolling() {
+        if (pollingTimer) {
+            clearInterval(pollingTimer);
+            pollingTimer = null;
+        }
+
+        requestQueue = [];
+        activeRequest = null;
+        seenRequestIds.clear();
+        isProcessing = false;
+
+        modal.classList.add("hidden");
+    }
+
+    acceptButton.addEventListener("click", () => {
+        respondToRequest("accept");
+    });
+
+    declineButton.addEventListener("click", () => {
+        respondToRequest("reject");
+    });
+
+    // Connect these functions to the existing login/logout flow.
+    window.startFriendRequestPolling = startFriendRequestPolling;
+    window.stopFriendRequestPolling = stopFriendRequestPolling;
+})();
+
+
