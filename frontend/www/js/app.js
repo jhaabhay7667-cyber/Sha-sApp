@@ -361,6 +361,9 @@ async function showAuthenticatedApp(user) {
     $("#myEmail").textContent = user.email || "";
     $("#connectionText").textContent = "Loading conversations...";
 
+    // Start friend request checking automatically after login
+    window.startFriendRequestPolling?.();
+
     try {
         await loadConversations();
 
@@ -383,26 +386,6 @@ async function showAuthenticatedApp(user) {
         $("#emptyState").classList.remove("hidden");
         $("#chatPanel").classList.add("hidden");
     }
-}
-
-function showAuthenticationScreen() {
-    currentUser = null;
-    conversations = [];
-    activeConversationId = null;
-
-    disconnectWebSocket();
-    clearMediaObjectURLs();
-    clearSelectedMedia();
-
-    authScreen.classList.remove("hidden");
-    appScreen.classList.add("hidden");
-
-    authForm.reset();
-
-    $("#togglePassword").textContent = "Show";
-    passwordInput.type = "password";
-
-    setAuthMode("login");
 }
 
 /* ==================================================
