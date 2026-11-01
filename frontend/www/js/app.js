@@ -1966,12 +1966,59 @@ showAuthenticationScreen();
                 person.email || "Sha'sapp user"
             );
 
-            if (person.relationship === "contact") {
-                const detail = document.createElement("p");
-                detail.className = "phone-contacts-message";
-                detail.textContent = "Already in your contacts.";
-                card.appendChild(detail);
-            } else if (person.relationship === "pending") {
+           if (person.relationship === "contact") {
+    const detail = document.createElement("p");
+    detail.className = "phone-contacts-message";
+    detail.textContent = "Already in your contacts.";
+    card.appendChild(detail);
+
+    addActionButton(card, "Open Chat", async (event) => {
+        const button = event.currentTarget;
+
+        button.disabled = true;
+        button.textContent = "Opening...";
+
+        try {
+            // Existing backend API: create or retrieve direct conversation.
+            await apiRequest(
+                `/messages/conversations/direct/${encodeURIComponent(person.id)}`,
+                { method: "POST" }
+            );
+
+            // Refresh the conversation list.
+            await loadConversations();
+
+            // Find the direct conversation with this contact.
+            const conversation = conversations.find((item) => {
+                const members = item.memberIds || [];
+
+                return (
+                    !item.group &&
+                    Number(item.contactId) === Number(person.id) &&
+                    members.some(
+                        (id) => Number(id) === Number(currentUser.id)
+                    )
+                );
+            });
+
+            if (!conversation) {
+                throw new Error(
+                    "Chat was created, but it could not be found in your conversation list."
+                );
+            }
+
+            // Open the selected conversation.
+            await selectConversation(conversation.id);
+
+        } catch (error) {
+            alert(`Could not open chat: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = "Open Chat";
+        }
+    });
+}
+            else if (person.relationship === "pending") {
                 const detail = document.createElement("p");
                 detail.className = "phone-contacts-message";
                 detail.textContent = "Contact request already pending.";
