@@ -344,6 +344,15 @@ $("#togglePassword").addEventListener("click", () => {
         : "Show";
 });
 
+function showAuthenticationScreen() {
+    window.stopFriendRequestPolling?.();
+
+    currentUser = null;
+
+    appScreen.classList.add("hidden");
+    authScreen.classList.remove("hidden");
+}
+
 /* ==================================================
    SHOW APPLICATION
 ================================================== */
