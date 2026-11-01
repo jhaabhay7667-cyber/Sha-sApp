@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import (
     APIRouter,
@@ -9,18 +10,18 @@ from fastapi import (
     HTTPException,
     UploadFile,
 )
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import ConversationMember, Message
 from app.routers.auth import get_current_user
 from app.routers.realtime import manager
+from app.storage import supabase, STORAGE_BUCKET
 
 
 router = APIRouter(prefix="/media", tags=["Media"])
 
-UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
 CHUNK_SIZE = 1024 * 1024
 
 MAX_SIZES = {
@@ -120,6 +121,13 @@ def build_media_event(message):
     }
 
 
+def remove_storage_file(file_path):
+    try:
+        supabase.storage.from_(STORAGE_BUCKET).remove([file_path])
+    except Exception:
+        pass
+
+
 @router.post("/conversations/{conversation_id}")
 async def upload_media(
     conversation_id: int,
@@ -140,7 +148,6 @@ async def upload_media(
     original_name = Path(file.filename or "upload").name
     extension = Path(original_name).suffix.lower()
 
-    # Remove optional codec parameters, e.g. audio/webm;codecs=opus.
     mime_type = (
         (file.content_type or "")
         .lower()
@@ -163,11 +170,11 @@ async def upload_media(
                 detail="Invalid audio duration.",
             )
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
     max_size = MAX_SIZES[message_type]
     total_size = 0
-    stored_path = None
+    file_data = bytearray()
+    stored_name = None
+    storage_uploaded = False
 
     try:
         message = Message(
@@ -187,27 +194,25 @@ async def upload_media(
         db.flush()
 
         stored_name = f"{message.id}{extension}"
-        stored_path = UPLOAD_DIR / stored_name
 
-        with stored_path.open("wb") as output_file:
-            while True:
-                chunk = await file.read(CHUNK_SIZE)
+        while True:
+            chunk = await file.read(CHUNK_SIZE)
 
-                if not chunk:
-                    break
+            if not chunk:
+                break
 
-                total_size += len(chunk)
+            total_size += len(chunk)
 
-                if total_size > max_size:
-                    raise HTTPException(
-                        status_code=413,
-                        detail=(
-                            "File exceeds the maximum size of "
-                            f"{max_size // (1024 * 1024)} MB."
-                        ),
-                    )
+            if total_size > max_size:
+                raise HTTPException(
+                    status_code=413,
+                    detail=(
+                        "File exceeds the maximum size of "
+                        f"{max_size // (1024 * 1024)} MB."
+                    ),
+                )
 
-                output_file.write(chunk)
+            file_data.extend(chunk)
 
         if total_size == 0:
             raise HTTPException(
@@ -215,19 +220,30 @@ async def upload_media(
                 detail="The uploaded file is empty.",
             )
 
+        storage = supabase.storage.from_(STORAGE_BUCKET)
+
+        storage.upload(
+            stored_name,
+            bytes(file_data),
+            file_options={
+                "content-type": mime_type,
+                "upsert": "false",
+            },
+        )
+
+        storage_uploaded = True
+
         message.media_size_bytes = total_size
         message.media_url = f"/media/{message.id}"
 
         db.commit()
         db.refresh(message)
 
-        # Broadcast only after the database commit succeeds.
         media_event = build_media_event(message)
 
         try:
             await manager.broadcast(conversation_id, media_event)
         except Exception:
-            # A WebSocket failure must not undo a successfully saved upload.
             pass
 
         return {
@@ -258,8 +274,8 @@ async def upload_media(
     except Exception:
         db.rollback()
 
-        if stored_path and stored_path.exists():
-            stored_path.unlink(missing_ok=True)
+        if stored_name and storage_uploaded:
+            remove_storage_file(stored_name)
 
         raise
 
@@ -298,17 +314,34 @@ def download_media(
             detail="Invalid media file information.",
         )
 
-    stored_path = UPLOAD_DIR / f"{message.id}{extension}"
+    stored_name = f"{message.id}{extension}"
 
-    if not stored_path.is_file():
+    try:
+        file_data = (
+            supabase.storage
+            .from_(STORAGE_BUCKET)
+            .download(stored_name)
+        )
+    except Exception:
         raise HTTPException(
             status_code=404,
-            detail="Media file is missing from the server.",
+            detail="Media file is missing from cloud storage.",
         )
 
-    return FileResponse(
-        path=stored_path,
+    safe_filename = quote(
+        message.media_file_name or stored_name,
+        safe="",
+    )
+
+    return Response(
+        content=file_data,
         media_type=message.media_mime_type,
-        filename=message.media_file_name or stored_path.name,
-        content_disposition_type="inline",
+        headers={
+            "Content-Disposition": (
+                f"inline; filename*=UTF-8''{safe_filename}"
+            ),
+            "Content-Length": str(len(file_data)),
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
     )
