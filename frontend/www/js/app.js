@@ -2099,6 +2099,59 @@ showAuthenticationScreen();
             selectButton.innerHTML = "<span>＋</span><span>Select from Phone</span>";
         }
     }
+    /* FIND PEOPLE BY NAME OR EMAIL */
+
+    const findPeopleInput = document.querySelector("#findPeopleInput");
+    const findPeopleButton = document.querySelector("#findPeopleButton");
+
+    async function searchPeople() {
+        const query = findPeopleInput.value.trim();
+
+        if (query.length < 2) {
+            showContactMessage("Please enter at least 2 characters.");
+            return;
+        }
+
+        findPeopleButton.disabled = true;
+        findPeopleButton.textContent = "Searching...";
+
+        showContactMessage("Searching for Sha'sapp users...");
+
+        try {
+            const response = await apiRequest(
+                `/contacts/search?q=${encodeURIComponent(query)}`
+            );
+
+            resultsContainer.replaceChildren();
+
+            if (!Array.isArray(response) || response.length === 0) {
+                showContactMessage(
+                    "No Sha'sapp account found. Check the name or email."
+                );
+                return;
+            }
+
+            await displayMatches(query, response);
+
+        } catch (error) {
+            showContactMessage(
+                `Search failed: ${error.message}`
+            );
+        } finally {
+            findPeopleButton.disabled = false;
+            findPeopleButton.textContent = "Search";
+        }
+    }
+
+    if (findPeopleButton && findPeopleInput) {
+        findPeopleButton.addEventListener("click", searchPeople);
+
+        findPeopleInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                searchPeople();
+            }
+        });
+    }
 
     selectButton.addEventListener("click", selectPhoneContact);
 })();

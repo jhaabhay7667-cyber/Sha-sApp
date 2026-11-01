@@ -1455,3 +1455,47 @@ body.light-theme .illustration-circle {
     opacity: 0.8;
     padding: 8px 2px;
 }
+
+/* FIND PEOPLE */
+.find-people-section {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.find-people-input-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.find-people-input-row input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color, rgba(128, 128, 128, 0.25));
+    border-radius: 12px;
+    background: var(--surface-color, var(--bg));
+    color: var(--text);
+    outline: none;
+}
+
+.find-people-input-row input:focus {
+    border-color: var(--primary, #6674de);
+}
+
+.find-people-input-row button {
+    min-width: 76px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary, #6674de);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.find-people-input-row button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
