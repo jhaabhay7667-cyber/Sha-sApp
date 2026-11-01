@@ -6,9 +6,7 @@
    Text messaging + media sharing + voice recording
 ================================================== */
 
-const API_BASE_URL = window.ShaCapacitor?.isNativePlatform()
-    ? "http://10.0.2.2:8000"
-    : "http://127.0.0.1:8000";
+const API_BASE_URL = "https://sha-sapp.onrender.com";
 const TOKEN_KEY = "shasapp_access_token";
 
 const $ = (selector) => document.querySelector(selector);
@@ -212,7 +210,7 @@ async function apiRequest(path, options = {}) {
         });
     } catch {
         throw new Error(
-            "Cannot connect to the backend. Make sure FastAPI is running at http://127.0.0.1:8000."
+            "Cannot connect to the Sha'sapp server. Please check your internet connection and try again."
         );
     }
 
@@ -668,9 +666,12 @@ function connectWebSocket(conversationId) {
 
     if (!token) return;
 
-    const socketUrl =
-        `ws://127.0.0.1:8000/ws/${conversationId}?token=${encodeURIComponent(token)}`;
+    const wsProtocol = API_BASE_URL.startsWith("https:")
+    ? "wss:"
+    : "ws:";
 
+const socketUrl =
+    `${wsProtocol}//${new URL(API_BASE_URL).host}/ws/${conversationId}?token=${encodeURIComponent(token)}`;
     const socket = new WebSocket(socketUrl);
 
     activeSocket = socket;
